@@ -71,12 +71,25 @@ class SeriesSchema:
             if not all(series.apply(lambda x: callable(x))):
                 raise ColumnDataTypeError('All elements of column {} should have type callable'.format(self.name))
         elif self.data_type != series.dtype:
-            raise ColumnDataTypeError('Column {} should have type {}'.format(self.name, self.data_type))
+            raise ColumnDataTypeError(
+                'Column {} should have type {}, but found {}'.format(
+                    self.name,
+                    self.data_type,
+                    series.dtype,
+                )
+            )
 
     def _check_allowed_values(self, series):
         if self.allowed_values is not None:
-            if not series.isin(self.allowed_values).all():
-                raise ColumnValues("The column {} can only contain the values {}.".format(self.name, self.allowed_values))
+            invalid_values = ~series.isin(self.allowed_values)
+            if invalid_values.any():
+                raise ColumnValues(
+                    "The column {} has invalid entries ({}). Must only contain the values {}.".format(
+                        self.name,
+                        sorted(series[invalid_values].unique().tolist()),
+                        self.allowed_values,
+                    )
+                )
 
     def _check_is_real_number(self, series):
         if self.must_be_real_number:
