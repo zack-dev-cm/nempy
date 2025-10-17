@@ -9,7 +9,7 @@ on:
   release:
     types: [ created ]
   workflow_dispatch: # manual trigger
-  
+
 jobs:
   test:
     # Matrix testing to test across OSs and Python versions
@@ -29,6 +29,10 @@ jobs:
           # uv run segfaults for windows on python 3.13
           - os: "windows-latest"
             python-version: '3.13'
+          # numpy build issues on macos-latest
+          - os: "macos-latest"
+            python-version: '3.13'
+
 
     # Necessary for Windows
     defaults:
@@ -59,7 +63,7 @@ jobs:
 
       - name: Run tests
         run: uv run --frozen pytest tests src -ra --doctest-modules
-          
+
   publish:
     if: github.event_name == 'release' && github.event.action == 'created'
     needs: test
